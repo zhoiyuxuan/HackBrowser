@@ -13,49 +13,80 @@ class ProcessProduce:
         shell=True)
 
 #抽象产品
-class SearchFunction(metaclass=ABCMeta):
+class Function(metaclass=ABCMeta):
     @abstractmethod
-    def search(self):
+    def run(self):
         pass
 
-class BaiduSearch(ProcessProduce,SearchFunction):
+    @abstractmethod
+    def showhelp(self):
+        pass
+
+class BaiduSearch(ProcessProduce,Function):
     def __init__(self,content):
         super().__init__()
         self.content=content
         self.cmd=f'open -a "/Applications/Google Chrome.app" "https://www.baidu.com/s?wd=%s"'% self.content
-    def search(self):
+    def run(self):
         os.system(self.cmd)
+    def showhelp(self):
+        print('hint:baidu <search content>')
 
-class BilibiliSearch(ProcessProduce,SearchFunction):
+class BilibiliSearch(ProcessProduce,Function):
     def __init__(self,content):
         super().__init__()
         self.content=content
         self.cmd=f'open -a "/Applications/Google Chrome.app" "https://search.bilibili.com/all?keyword=%s"'% self.content
-    def search(self):
+    def run(self):
         os.system(self.cmd)
+    def showhelp(self):
+        print('hint:bilibili <search content>')
 
+class GitHubSearch(ProcessProduce,Function):
+    def __init__(self,content):
+        super().__init__()
+        self.content=content
+        self.cmd=f'open -a "/Applications/Google Chrome.app" "https://github.com/search?q=%s"'% self.content
+    def run(self):
+        os.system(self.cmd)
+    def showhelp(self):
+        print('hint:github <search content>')
+
+
+#简单工场:
 class Watcher:
     def __init__(self,cmd,content):
         self.cmd=cmd
         self.content=content
 
-    def runCMD(self):
-        if self.cmd not in command:
-            print('command error')
+    def createFactory(self):
+        if self.cmd =='help':
+            for cmd in command:
+                print(cmd)
         elif self.cmd == 'baidu':
-            return BaiduSearch(self.content).search()
+            return BaiduSearch(self.content)
         elif self.cmd == 'bilibili':
-            return BilibiliSearch(self.content).search()
+            return BilibiliSearch(self.content)
+        elif self.cmd == 'github':
+            return GitHubSearch(self.content)
+        else:
+            print('command error')
 
-
-command = ['bilibili', 'baidu']
+command = ['bilibili', 'baidu','github']
 
 if __name__ == '__main__':
     while(1):
         cmdline=input()
         cmd=cmdline.split()[0]
         content=cmdline.replace('{0} '.format(cmd),'',1)
-        Watcher(cmd,content).runCMD()
+        try:
+            factory=Watcher(cmd,content).createFactory()
+            if content == 'help':
+                factory.showhelp()
+            else:
+                factory.run()
+        except AttributeError:
+            pass
 
 
 
