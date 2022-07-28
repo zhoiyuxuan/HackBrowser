@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from subprocess import PIPE,Popen
 import os
+from pynput.keyboard import Key, Controller
+from pynput import keyboard
 
 #抽象工厂
 class ProcessProduce:
@@ -72,16 +74,39 @@ class Watcher:
         else:
             print('command error')
 
+#监听键盘
+
+def on_press(key):
+    try:
+        print('alphanumeric key {0} pressed'.format(key.char))
+    except AttributeError:
+        print('special key {0} pressed'.format(key))
+
+def on_release(key):
+    print('{0} released'.format(key))
+    if key == keyboard.Key.esc:
+        return False
+
+class KeyBoardListener:
+    def startlisten(self):
+        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+
 command = ['bilibili', 'baidu','github']
 
 if __name__ == '__main__':
+    command=[]
     while(1):
+        # listener=KeyBoardListener().startlisten()
+
         cmdline=input()
+        command.append(cmdline)
+
         cmd=cmdline.split()[0]
         content=cmdline.replace('{0} '.format(cmd),'',1)
+        #todo: 这一块的数据结构应该使用列表存储子命令和其元素,现在只是简单版的能用而已
         try:
             factory=Watcher(cmd,content).createFactory()
-            if content == 'help':
+            if content == 'help' or content == '-h':
                 factory.showhelp()
             else:
                 factory.run()
